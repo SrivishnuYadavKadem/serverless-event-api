@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Management</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .event-card {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .button-group {
+      display: flex;
+      gap: 10px;
+    }
+    .details-button {
+      background-color: #2196F3;
+    }
+    .details-button:hover {
+      background-color: #0b7dda;
+    }
+    .hidden {
+      display: none;
+    }
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+    }
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border: 1px solid #ddd;
+      border-radius: 4px 4px 0 0;
+      margin-right: 5px;
+    }
+    .tab.active {
+      background-color: #f1f1f1;
+      border-bottom: none;
+    }
+    .tab-content {
+      border: 1px solid #ddd;
+      padding: 20px;
+    }
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.4);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal.hidden {
+      display: none;
+    }
+    .modal:not(.hidden) {
+      display: flex;
+    }
+    .modal-content {
+      background-color: #fefefe;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 700px;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+      border-radius: 5px;
+    }
+    .close-modal {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close-modal:hover {
+      color: black;
+    }
+    .agenda-item {
+      display: flex;
+      margin-bottom: 10px;
+    }
+    .agenda-time {
+      width: 100px;
+      font-weight: bold;
+    }
+    .speaker-card {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+    }
+    .category-badge {
+      display: inline-block;
+      background-color: #2196F3;
+      color: white;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin-left: 10px;
+    }
+    .auth-form {
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    #logout-button {
+      background-color: #f44336;
+      margin-top: 20px;
+    }
+    #logout-button:hover {
+      background-color: #d32f2f;
+    }
+  </style>
+</head>
+<body>
+  <h1>Event Management</h1>
+  
+  <div class="tabs">
+    <div class="tab active" data-tab="events">Events</div>
+    <div class="tab" data-tab="register">Register</div>
+    <div class="tab" data-tab="my-registrations">My Registrations</div>
+    <div class="tab" data-tab="profile">Profile</div>
+    <div class="tab" data-tab="config">Configuration</div>
+  </div>
+  
+  <div id="events" class="tab-content">
+    <h2>Events</h2>
+    <div class="form-group">
+      <input type="text" id="event-search" placeholder="Search events by name or location">
+      <button id="search-events">Search</button>
+      <button id="clear-search">Clear</button>
+    </div>
+    <div id="events-list">
+      <p>Loading events...</p>
+    </div>
+  </div>
+  
+  <div id="register" class="tab-content hidden">
+    <h2>Register for Event</h2>
+    <div class="form-group">
+      <label for="event-select">Select Event:</label>
+      <select id="event-select">
+        <option value="">Loading events...</option>
+      </select>
+    </div>
+    
+    <form id="registration-form">
+      <div class="form-group">
+        <label for="attendee-name">Name:</label>
+        <input type="text" id="attendee-name" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="attendee-email">Email:</label>
+        <input type="email" id="attendee-email" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="attendee-phone">Phone (optional):</label>
+        <input type="tel" id="attendee-phone">
+      </div>
+      
+      <button type="submit">Register</button>
+    </form>
+    
+    <div id="registration-result" class="hidden">
+      <h3>Registration Successful!</h3>
+      <p>You have been registered for the event. Check your email for confirmation.</p>
+    </div>
+  </div>
+  
+  <div id="my-registrations" class="tab-content hidden">
+    <h2>My Registrations</h2>
+    
+    <div class="form-group">
+      <label for="search-email">Enter your email to find your registrations:</label>
+      <input type="email" id="search-email" placeholder="your-email@example.com">
+      <button id="search-registrations">Search</button>
+    </div>
+    
+    <div id="registrations-list">
+      <p>Enter your email and click Search to view your registrations.</p>
+    </div>
+  </div>
+  
+  <div id="profile" class="tab-content hidden">
+    <h2>User Profile</h2>
+    <div id="login-form" class="auth-form">
+      <h3>Login</h3>
+      <div class="form-group">
+        <label for="login-email">Email:</label>
+        <input type="email" id="login-email" required>
+      </div>
+      <div class="form-group">
+        <label for="login-password">Password:</label>
+        <input type="password" id="login-password" required>
+      </div>
+      <button id="login-button">Login</button>
+      <p>Don't have an account? <a href="#" id="show-signup">Sign up</a></p>
+    </div>
+    
+    <div id="signup-form" class="auth-form hidden">
+      <h3>Sign Up</h3>
+      <div class="form-group">
+        <label for="signup-name">Name:</label>
+        <input type="text" id="signup-name" required>
+      </div>
+      <div class="form-group">
+        <label for="signup-email">Email:</label>
+        <input type="email" id="signup-email" required>
+      </div>
+      <div class="form-group">
+        <label for="signup-password">Password:</label>
+        <input type="password" id="signup-password" required>
+      </div>
+      <button id="signup-button">Sign Up</button>
+      <p>Already have an account? <a href="#" id="show-login">Login</a></p>
+    </div>
+    
+    <div id="user-profile" class="hidden">
+      <h3>Welcome, <span id="user-name">User</span>!</h3>
+      <div class="form-group">
+        <label for="profile-name">Name:</label>
+        <input type="text" id="profile-name">
+      </div>
+      <div class="form-group">
+        <label for="profile-email">Email:</label>
+        <input type="email" id="profile-email" readonly>
+      </div>
+      <div class="form-group">
+        <label for="profile-phone">Phone:</label>
+        <input type="tel" id="profile-phone">
+      </div>
+      <button id="save-profile">Save Profile</button>
+      <button id="logout-button">Logout</button>
+    </div>
+  </div>
+  
+  <div id="config" class="tab-content hidden">
+    <h2>API Configuration</h2>
+    <div class="form-group">
+      <label for="api-url">API URL:</label>
+      <input type="text" id="api-url" placeholder="https://your-api-id.execute-api.region.amazonaws.com/dev">
+    </div>
+    <button id="save-config">Save Configuration</button>
+  </div>
+  
+  <!-- Event Details Modal -->
+  <div id="event-details-modal" class="modal hidden" style="display: none;">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <div id="event-details-content"></div>
+    </div>
+  </div>
+  
+  <script>
+    // DOM Elements
+    const eventsTab = document.querySelector('[data-tab="events"]');
+    const registerTab = document.querySelector('[data-tab="register"]');
+    const myRegistrationsTab = document.querySelector('[data-tab="my-registrations"]');
+    const configTab = document.querySelector('[data-tab="config"]');
+    const eventsContent = document.getElementById('events');
+    const registerContent = document.getElementById('register');
+    const myRegistrationsContent = document.getElementById('my-registrations');
+    const configContent = document.getElementById('config');
+    const eventsList = document.getElementById('events-list');
+    const eventSelect = document.getElementById('event-select');
+    const registrationForm = document.getElementById('registration-form');
+    const registrationResult = document.getElementById('registration-result');
+    const apiUrlInput = document.getElementById('api-url');
+    const saveConfigButton = document.getElementById('save-config');
+    const searchEmailInput = document.getElementById('search-email');
+    const searchRegistrationsButton = document.getElementById('search-registrations');
+    const registrationsList = document.getElementById('registrations-list');
+    const eventSearchInput = document.getElementById('event-search');
+    const searchEventsButton = document.getElementById('search-events');
+    const clearSearchButton = document.getElementById('clear-search');
+    const eventDetailsModal = document.getElementById('event-details-modal');
+    const eventDetailsContent = document.getElementById('event-details-content');
+    const closeModal = document.querySelector('.close-modal');
+    
+    // Profile elements
+    const loginForm = document.getElementById('login-form');
+    const signupForm = document.getElementById('signup-form');
+    const userProfile = document.getElementById('user-profile');
+    const showSignupLink = document.getElementById('show-signup');
+    const showLoginLink = document.getElementById('show-login');
+    const loginButton = document.getElementById('login-button');
+    const signupButton = document.getElementById('signup-button');
+    const logoutButton = document.getElementById('logout-button');
+    const saveProfileButton = document.getElementById('save-profile');
+    const profileTab = document.querySelector('[data-tab="profile"]');
+    const profileContent = document.getElementById('profile');
+    
+    // API URL from localStorage
+    let apiUrl = localStorage.getItem('apiUrl') || '';
+    apiUrlInput.value = apiUrl;
+    
+    // Tab switching
+    function switchTab(tab) {
+      // Hide all tab contents
+      eventsContent.classList.add('hidden');
+      registerContent.classList.add('hidden');
+      myRegistrationsContent.classList.add('hidden');
+      profileContent.classList.add('hidden');
+      configContent.classList.add('hidden');
+      
+      // Remove active class from all tabs
+      eventsTab.classList.remove('active');
+      registerTab.classList.remove('active');
+      myRegistrationsTab.classList.remove('active');
+      profileTab.classList.remove('active');
+      configTab.classList.remove('active');
+      
+      // Show selected tab content
+      if (tab === 'events') {
+        eventsContent.classList.remove('hidden');
+        eventsTab.classList.add('active');
+        loadEvents();
+      } else if (tab === 'register') {
+        registerContent.classList.remove('hidden');
+        registerTab.classList.add('active');
+        loadEventsForSelect();
+      } else if (tab === 'my-registrations') {
+        myRegistrationsContent.classList.remove('hidden');
+        myRegistrationsTab.classList.add('active');
+        // Don't load registrations automatically - wait for user to enter email
+      } else if (tab === 'profile') {
+        profileContent.classList.remove('hidden');
+        profileTab.classList.add('active');
+        checkUserAuth();
+      } else if (tab === 'config') {
+        configContent.classList.remove('hidden');
+        configTab.classList.add('active');
+      }
+    }
+    
+    // Event listeners for tabs
+    eventsTab.addEventListener('click', () => switchTab('events'));
+    registerTab.addEventListener('click', () => switchTab('register'));
+    myRegistrationsTab.addEventListener('click', () => switchTab('my-registrations'));
+    profileTab.addEventListener('click', () => switchTab('profile'));
+    configTab.addEventListener('click', () => switchTab('config'));
+    
+    // Save API configuration
+    saveConfigButton.addEventListener('click', () => {
+      apiUrl = apiUrlInput.value.trim();
+      localStorage.setItem('apiUrl', apiUrl);
+      alert('Configuration saved!');
+      switchTab('events');
+    });
+    
+    // Load events
+    async function loadEvents(searchTerm = '') {
+      if (!apiUrl) {
+        eventsList.innerHTML = '<p>Please configure the API URL first.</p>';
+        return;
+      }
+      
+      try {
+        let url = `${apiUrl}/events`;
+        if (searchTerm) {
+          url += `?search=${encodeURIComponent(searchTerm)}`;
+        }
+        
+        const response = await fetch(url);
+        const events = await response.json();
+        
+        if (events.length === 0) {
+          eventsList.innerHTML = searchTerm 
+            ? `<p>No events found matching "${searchTerm}".</p>` 
+            : '<p>No events found.</p>';
+          return;
+        }
+        
+        let html = '';
+        events.forEach(event => {
+          html += `
+            <div class="event-card">
+              <h3>${event.name}</h3>
+              <p><strong>Date:</strong> ${event.date}</p>
+              <p><strong>Location:</strong> ${event.location}</p>
+              <p>${event.description}</p>
+              <div class="button-group">
+                <button class="register-button" data-id="${event.id}">Register</button>
+                <button class="details-button" data-id="${event.id}">View Details</button>
+              </div>
+            </div>
+          `;
+        });
+        
+        eventsList.innerHTML = html;
+        
+        // Add event listeners to register buttons
+        document.querySelectorAll('.register-button').forEach(button => {
+          button.addEventListener('click', () => {
+            const eventId = button.getAttribute('data-id');
+            switchTab('register');
+            eventSelect.value = eventId;
+          });
+        });
+        
+        // Add event listeners to details buttons
+        document.querySelectorAll('.details-button').forEach(button => {
+          button.addEventListener('click', () => {
+            const eventId = button.getAttribute('data-id');
+            loadEventDetails(eventId);
+          });
+        });
+      } catch (error) {
+        eventsList.innerHTML = `<p>Error loading events: ${error.message}</p>`;
+      }
+    }
+    
+    // Event listeners for search
+    searchEventsButton.addEventListener('click', () => {
+      const searchTerm = eventSearchInput.value.trim();
+      loadEvents(searchTerm);
+    });
+    
+    clearSearchButton.addEventListener('click', () => {
+      eventSearchInput.value = '';
+      loadEvents();
+    });
+    
+    // Add event listener for Enter key in search box
+    eventSearchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        searchEventsButton.click();
+      }
+    });
+    
+    // Load events for select dropdown
+    async function loadEventsForSelect() {
+      if (!apiUrl) {
+        eventSelect.innerHTML = '<option value="">Configure API URL first</option>';
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${apiUrl}/events`);
+        const events = await response.json();
+        
+        if (events.length === 0) {
+          eventSelect.innerHTML = '<option value="">No events available</option>';
+          return;
+        }
+        
+        let html = '<option value="">Select an event</option>';
+        events.forEach(event => {
+          html += `<option value="${event.id}">${event.name} (${event.date})</option>`;
+        });
+        
+        eventSelect.innerHTML = html;
+      } catch (error) {
+        eventSelect.innerHTML = `<option value="">Error: ${error.message}</option>`;
+      }
+    }
+    
+    // Handle registration form submission
+    registrationForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const eventId = eventSelect.value;
+      if (!eventId) {
+        alert('Please select an event');
+        return;
+      }
+      
+      const attendeeName = document.getElementById('attendee-name').value;
+      const email = document.getElementById('attendee-email').value;
+      const phone = document.getElementById('attendee-phone').value;
+      
+      try {
+        const response = await fetch(`${apiUrl}/events/${eventId}/register`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            attendeeName,
+            email,
+            phone
+          })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || 'Registration failed');
+        }
+        
+        // Show success message
+        registrationForm.classList.add('hidden');
+        registrationResult.classList.remove('hidden');
+        
+        // Reset form
+        registrationForm.reset();
+        
+        // Hide success message after 5 seconds
+        setTimeout(() => {
+          registrationForm.classList.remove('hidden');
+          registrationResult.classList.add('hidden');
+          switchTab('events');
+        }, 5000);
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+      }
+    });
+    
+    // Load registrations by email
+    async function loadRegistrations(email) {
+      if (!apiUrl) {
+        registrationsList.innerHTML = '<p>Please configure the API URL first.</p>';
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${apiUrl}/registrations?email=${encodeURIComponent(email)}`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}`);
+        }
+        
+        const registrations = await response.json();
+        
+        if (registrations.length === 0) {
+          registrationsList.innerHTML = '<p>No registrations found for this email.</p>';
+          return;
+        }
+        
+        let html = '<h3>Your Registrations</h3>';
+        registrations.forEach(reg => {
+          html += `
+            <div class="event-card">
+              <h4>${reg.eventName}</h4>
+              <p><strong>Date:</strong> ${reg.eventDate}</p>
+              <p><strong>Location:</strong> ${reg.eventLocation}</p>
+              <p><strong>Registration Status:</strong> ${reg.status}</p>
+              <p><strong>Registered as:</strong> ${reg.attendeeName}</p>
+              <button class="cancel-button" data-id="${reg.id}">Cancel Registration</button>
+            </div>
+          `;
+        });
+        
+        registrationsList.innerHTML = html;
+        
+        // Add event listeners to cancel buttons
+        document.querySelectorAll('.cancel-button').forEach(button => {
+          button.addEventListener('click', async () => {
+            const registrationId = button.getAttribute('data-id');
+            if (confirm('Are you sure you want to cancel this registration?')) {
+              try {
+                const response = await fetch(`${apiUrl}/registrations/${registrationId}`, {
+                  method: 'DELETE'
+                });
+                
+                if (!response.ok) {
+                  throw new Error(`HTTP error ${response.status}`);
+                }
+                
+                alert('Registration cancelled successfully');
+                // Reload the registrations
+                loadRegistrations(searchEmailInput.value.trim());
+              } catch (error) {
+                alert(`Error cancelling registration: ${error.message}`);
+              }
+            }
+          });
+        });
+      } catch (error) {
+        registrationsList.innerHTML = `<p>Error loading registrations: ${error.message}</p>`;
+      }
+    }
+    
+    // Event listener for search button
+    searchRegistrationsButton.addEventListener('click', () => {
+      const email = searchEmailInput.value.trim();
+      if (!email) {
+        alert('Please enter your email address');
+        return;
+      }
+      
+      loadRegistrations(email);
+    });
+    
+    // Load event details
+    async function loadEventDetails(eventId) {
+      if (!apiUrl) {
+        alert('Please configure the API URL first.');
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${apiUrl}/events/${eventId}/details`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}`);
+        }
+        
+        const eventDetails = await response.json();
+        
+        // Format the details for display
+        let html = `
+          <h2>${eventDetails.name} <span class="category-badge">${eventDetails.category}</span></h2>
+          <p><strong>Date:</strong> ${eventDetails.date}</p>
+          <p><strong>Location:</strong> ${eventDetails.location}</p>
+          <p><strong>Organizer:</strong> ${eventDetails.organizer}</p>
+          <p>${eventDetails.description}</p>
+          
+          <h3>Agenda</h3>
+          <div class="agenda">
+        `;
+        
+        eventDetails.agenda.forEach(item => {
+          html += `
+            <div class="agenda-item">
+              <div class="agenda-time">${item.time}</div>
+              <div>${item.title}</div>
+            </div>
+          `;
+        });
+        
+        html += `
+          </div>
+          
+          <h3>Speakers</h3>
+        `;
+        
+        eventDetails.speakers.forEach(speaker => {
+          html += `
+            <div class="speaker-card">
+              <h4>${speaker.name}</h4>
+              <p><em>${speaker.title}</em></p>
+              <p>${speaker.bio}</p>
+            </div>
+          `;
+        });
+        
+        html += `
+          <p><strong>Current Registrations:</strong> ${eventDetails.registrationCount} ${eventDetails.capacity ? `/ ${eventDetails.capacity}` : ''}</p>
+          <button class="register-button" data-id="${eventDetails.id}">Register Now</button>
+        `;
+        
+        // Display the details in the modal
+        eventDetailsContent.innerHTML = html;
+        eventDetailsModal.classList.remove('hidden');
+        
+        // Add event listener to the register button in the modal
+        eventDetailsContent.querySelector('.register-button').addEventListener('click', () => {
+          eventDetailsModal.classList.add('hidden');
+          switchTab('register');
+          eventSelect.value = eventId;
+        });
+      } catch (error) {
+        alert(`Error loading event details: ${error.message}`);
+      }
+    }
+    
+    // Close modal when clicking the X
+    closeModal.addEventListener('click', () => {
+      eventDetailsModal.classList.add('hidden');
+    });
+    
+    // Close modal when clicking outside the content
+    eventDetailsModal.addEventListener('click', (e) => {
+      if (e.target === eventDetailsModal) {
+        eventDetailsModal.classList.add('hidden');
+      }
+    });
+    
+    // User authentication functions
+    function checkUserAuth() {
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      
+      if (token && user) {
+        // User is logged in
+        showUserProfile(user);
+      } else {
+        // User is not logged in
+        showLoginForm();
+      }
+    }
+    
+    function showLoginForm() {
+      loginForm.classList.remove('hidden');
+      signupForm.classList.add('hidden');
+      userProfile.classList.add('hidden');
+    }
+    
+    function showSignupForm() {
+      loginForm.classList.add('hidden');
+      signupForm.classList.remove('hidden');
+      userProfile.classList.add('hidden');
+    }
+    
+    function showUserProfile(user) {
+      loginForm.classList.add('hidden');
+      signupForm.classList.add('hidden');
+      userProfile.classList.remove('hidden');
+      
+      document.getElementById('user-name').textContent = user.name;
+      document.getElementById('profile-name').value = user.name;
+      document.getElementById('profile-email').value = user.email;
+      document.getElementById('profile-phone').value = user.phone || '';
+      
+      // Also update the email in the My Registrations tab
+      searchEmailInput.value = user.email;
+    }
+    
+    // Event listeners for authentication
+    showSignupLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      showSignupForm();
+    });
+    
+    showLoginLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      showLoginForm();
+    });
+    
+    loginButton.addEventListener('click', async () => {
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      
+      if (!email || !password) {
+        alert('Please enter both email and password');
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${apiUrl}/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email, password })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || 'Login failed');
+        }
+        
+        const data = await response.json();
+        
+        // Save token and user data
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        // Show user profile
+        showUserProfile(data.user);
+        
+        // Clear login form
+        document.getElementById('login-email').value = '';
+        document.getElementById('login-password').value = '';
+      } catch (error) {
+        alert(`Login failed: ${error.message}`);
+      }
+    });
+    
+    signupButton.addEventListener('click', async () => {
+      const name = document.getElementById('signup-name').value;
+      const email = document.getElementById('signup-email').value;
+      const password = document.getElementById('signup-password').value;
+      
+      if (!name || !email || !password) {
+        alert('Please fill in all fields');
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${apiUrl}/auth/signup`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ name, email, password })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || 'Signup failed');
+        }
+        
+        const data = await response.json();
+        
+        // Save token and user data
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        // Show user profile
+        showUserProfile(data.user);
+        
+        // Clear signup form
+        document.getElementById('signup-name').value = '';
+        document.getElementById('signup-email').value = '';
+        document.getElementById('signup-password').value = '';
+        
+        alert('Account created successfully!');
+      } catch (error) {
+        alert(`Signup failed: ${error.message}`);
+      }
+    });
+    
+    logoutButton.addEventListener('click', () => {
+      // Clear user data
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // Show login form
+      showLoginForm();
+      
+      // Clear search email
+      searchEmailInput.value = '';
+    });
+    
+    saveProfileButton.addEventListener('click', async () => {
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      
+      if (!user) {
+        alert('You must be logged in to update your profile');
+        return;
+      }
+      
+      const name = document.getElementById('profile-name').value;
+      const phone = document.getElementById('profile-phone').value;
+      
+      try {
+        const response = await fetch(`${apiUrl}/users/${user.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({ name, phone })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || 'Failed to update profile');
+        }
+        
+        const updatedUser = await response.json();
+        
+        // Update stored user data
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        
+        // Update display
+        document.getElementById('user-name').textContent = updatedUser.name;
+        
+        alert('Profile updated successfully!');
+      } catch (error) {
+        alert(`Failed to update profile: ${error.message}`);
+      }
+    });
+    
+    // Make sure modal is hidden on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      eventDetailsModal.classList.add('hidden');
+      eventDetailsModal.style.display = 'none';
+    });
+    
+    // Initialize
+    if (!apiUrl) {
+      switchTab('config');
+    } else {
+      switchTab('events');
+    }
+  </script>
+</body>
+</html>

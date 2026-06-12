@@ -134,10 +134,7 @@ If you have an AWS account, you can deploy this application to AWS:
 
 4. Update the frontend with your API Gateway URL
 
-## License
-
-MIT
 
 ## Author
 
-Your Name
+Srivishnu Yadav Kadem
